@@ -1344,8 +1344,8 @@ def run(**kwargs):
 		if args.screenshots:
 			parser.error('argument --screenshots requires --phash')
 
-	if not kwargs and args.format not in ('cli', 'csv', 'json', 'list'):
-		parser.error('invalid output format (choose from cli, csv, json, list)')
+	if not kwargs and args.format not in ('cli', 'csv', 'json', 'list', 'omit'):
+		parser.error('invalid output format (choose from cli, csv, json, list, omit)')
 
 	if args.threads < 1:
 		parser.error('number of threads must be greater than zero')
@@ -1564,9 +1564,14 @@ r'''     _           _            _     _
 	ttime = 0
 	ival = 0.2
 	dlen = len(domains)
-	
+
+	print(f"DEBUG: Total permutations = {dlen}")  # Debug
+    
 	if kwargs:
+		print("DEBUG: Yielding nbr_permutations")  # Debug
 		yield ('nbr_permutations', dlen)
+	else:
+		print("DEBUG: No kwargs, skipping nbr_permutations yield")  # Debug
 
 	while True:
 		time.sleep(ival)
