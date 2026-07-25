@@ -1305,7 +1305,6 @@ def run(**kwargs):
 		parser.print_help()
 		return
 	
-	run.total_permutations = 0
 	args = parser.parse_args()
 
 	threads = []
@@ -1565,7 +1564,9 @@ r'''     _           _            _     _
 	ttime = 0
 	ival = 0.2
 	dlen = len(domains)
-	run.total_permutations = dlen
+	
+	if kwargs:
+		yield ('nbr_permutations', dlen)
 
 	while True:
 		time.sleep(ival)
@@ -1621,7 +1622,7 @@ r'''     _           _            _     _
 		sys.stdout = sys._stdout
 
 	if kwargs:
-		return list(map(dict, domains))
+		yield ('complete', list(map(dict, domains)))
 
 
 if __name__ == '__main__':
