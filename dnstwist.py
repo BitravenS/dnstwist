@@ -1261,6 +1261,7 @@ def run(**kwargs):
 	parser.add_argument('-a', '--all', action='store_true', help='Print all DNS records instead of the first ones')
 	parser.add_argument('-b', '--banners', action='store_true', help='Determine HTTP and SMTP service banners')
 	parser.add_argument('-d', '--dictionary', type=str, metavar='FILE', help='Generate more domains using dictionary FILE')
+	parser.add_argument('-k', '--keywords', type=str, metavar='LIST', help='Generate more domains using keywords (separated with commas)')
 	parser.add_argument('-f', '--format', type=str, default='cli', help='Output format: cli, csv, json, list (default: cli)')
 	parser.add_argument('--fuzzers', type=str, metavar='LIST', help='Use only selected fuzzing algorithms (separated with commas)')
 	parser.add_argument('-g', '--geoip', action='store_true', help='Lookup for GeoIP location')
@@ -1303,7 +1304,8 @@ def run(**kwargs):
 		print('{}dnstwist {} by <{}>{}\n'.format(ST_BRI, __version__, __email__, ST_RST))
 		parser.print_help()
 		return
-
+	
+	run.total_permutations = 0
 	args = parser.parse_args()
 
 	threads = []
@@ -1392,7 +1394,8 @@ def run(**kwargs):
 			parser.error('UTF-8 decode error when reading: {}'.format(args.dictionary))
 		except OSError as err:
 			parser.error('unable to open {} ({})'.format(args.dictionary, err.strerror.lower()))
-
+	if args.keywords:
+		dictionary.extend([x.strip().lower() for x in set(args.keywords.split(',')) if x.strip()])
 	tld = []
 	if args.tld:
 		re_tld = re.compile(r'^[a-z0-9-]{2,63}(?:\.[a-z0-9-]{2,63})?$')
@@ -1561,10 +1564,12 @@ r'''     _           _            _     _
 
 	ttime = 0
 	ival = 0.2
+	dlen = len(domains)
+	run.total_permutations = dlen
+
 	while True:
 		time.sleep(ival)
 		ttime += ival
-		dlen = len(domains)
 		comp = dlen - jobs.qsize()
 		if not comp:
 			continue
