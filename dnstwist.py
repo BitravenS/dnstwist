@@ -1565,13 +1565,10 @@ r'''     _           _            _     _
 	ival = 0.2
 	dlen = len(domains)
 
-	print(f"DEBUG: Total permutations = {dlen}")  # Debug
     
 	if kwargs:
-		print("DEBUG: Yielding nbr_permutations")  # Debug
 		yield ('nbr_permutations', dlen)
-	else:
-		print("DEBUG: No kwargs, skipping nbr_permutations yield")  # Debug
+
 
 	while True:
 		time.sleep(ival)
