@@ -2216,7 +2216,8 @@ def run(**kwargs):
         umult = (dlen * (1 - mult)) // total if total else 0
         whois = Whois()
         for i, domain in enumerate([x for x in domains if x.is_registered()]):
-            yield ("progress", int(dlen * mult + i * umult))
+            if sw.tick():
+                yield ("progress", int(dlen * mult + i * umult))
             p_cli(
                 ST_CLR
                 + "\rWHOIS: {} ({:.2%})".format(domain["domain"], (i + 1) / total)
