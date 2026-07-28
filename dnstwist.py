@@ -2177,13 +2177,14 @@ def run(**kwargs):
         yield ("nbr_permutations", dlen)
 
     sw = Stopwatch(args.ival if args.ival else 1)
+    mult = 0.8 if args.whois else 1.0
 
     while True:
         time.sleep(ival)
         ttime += ival
         comp = dlen - jobs.qsize()
         if sw.tick():
-            yield ("progress", comp)
+            yield ("progress", int(comp*mult))
         if not comp:
             continue
         rate = int(comp / ttime) + 1
@@ -2212,8 +2213,10 @@ def run(**kwargs):
 
     if args.whois:
         total = sum([1 for x in domains if x.is_registered()])
+        umult = (dlen * (1 - mult)) // total if total else 0
         whois = Whois()
         for i, domain in enumerate([x for x in domains if x.is_registered()]):
+            yield ("progress", int(dlen * mult + i * umult))
             p_cli(
                 ST_CLR
                 + "\rWHOIS: {} ({:.2%})".format(domain["domain"], (i + 1) / total)
