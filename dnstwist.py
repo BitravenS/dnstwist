@@ -1724,7 +1724,7 @@ def cleaner(func):
 
 @cleaner
 def run(**kwargs):
-    cancel_event = kwargs.get('cancel_event',None)
+    cancel_event = kwargs.pop('cancel_event',None)
 
     parser = argparse.ArgumentParser(
         usage="%s [OPTION]... DOMAIN" % sys.argv[0],
