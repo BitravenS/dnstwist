@@ -1322,12 +1322,13 @@ class Fuzzer:
 
 
 class Scanner(threading.Thread):
-    def __init__(self, queue):
+    def __init__(self, queue, cancel_event=None):
         threading.Thread.__init__(self)
         self._stop_event = threading.Event()
         self.daemon = True
         self.id = 0
         self.jobs = queue
+        self.cancel_event = cancel_event
         self.lsh_init = ""
         self.lsh_effective_url = ""
         self.phash_init = None
@@ -1419,6 +1420,9 @@ class Scanner(threading.Thread):
     def stop(self):
         self._stop_event.set()
 
+    def is_cancelled(self):
+        return self.cancel_event.is_set() if self.cancel_event else False
+    
     def is_stopped(self):
         return self._stop_event.is_set()
 
@@ -1452,7 +1456,7 @@ class Scanner(threading.Thread):
             [str(x).split(" ")[-1].rstrip(".") for x in ans]
         )
 
-        while not self.is_stopped():
+        while not self.is_stopped() and not self.is_cancelled():
             try:
                 task = self.jobs.get(block=False)
             except queue.Empty:
@@ -1793,6 +1797,7 @@ def run(**kwargs):
     parser.add_argument(
         "-o", "--output", type=str, metavar="FILE", help="Save output to FILE"
     )
+
     parser.add_argument(
         "-r",
         "--registered",
@@ -1865,6 +1870,7 @@ def run(**kwargs):
     )
 
     if kwargs:
+        cancel_event = kwargs.get('cancel_event',None)
         sys.argv = [""]
         for k, v in kwargs.items():
             if k in ("domain",):
@@ -2143,7 +2149,7 @@ def run(**kwargs):
 
     sid = int.from_bytes(os.urandom(4), sys.byteorder)
     for _ in range(args.threads):
-        worker = Scanner(jobs)
+        worker = Scanner(jobs, cancel_event=cancel_event)
         worker.id = sid
         worker.url = url
         worker.option_extdns = MODULE_DNSPYTHON
@@ -2180,6 +2186,9 @@ def run(**kwargs):
     mult = 0.8 if args.whois else 1.0
 
     while True:
+        if cancel_event:
+            if cancel_event.is_set():
+                break
         time.sleep(ival)
         ttime += ival
         comp = dlen - jobs.qsize()
@@ -2216,6 +2225,9 @@ def run(**kwargs):
         umult = (dlen * (1 - mult)) // total if total else 0
         whois = Whois()
         for i, domain in enumerate([x for x in domains if x.is_registered()]):
+            if cancel_event:
+                if cancel_event.is_set():
+                    break
             if sw.tick():
                 yield ("progress", int(dlen * mult + i * umult))
             p_cli(
