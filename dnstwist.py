@@ -1724,6 +1724,8 @@ def cleaner(func):
 
 @cleaner
 def run(**kwargs):
+    cancel_event = kwargs.get('cancel_event',None)
+
     parser = argparse.ArgumentParser(
         usage="%s [OPTION]... DOMAIN" % sys.argv[0],
         add_help=False,
@@ -1870,7 +1872,6 @@ def run(**kwargs):
     )
 
     if kwargs:
-        cancel_event = kwargs.get('cancel_event',None)
         sys.argv = [""]
         for k, v in kwargs.items():
             if k in ("domain",):
